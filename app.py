@@ -1,34 +1,46 @@
 #!/usr/bin/env python3
-import os
 
-from aws_cdk import core as cdk
-
-# For consistency with TypeScript code, `cdk` is the preferred import name for
-# the CDK's core module.  The following line also imports it as `core` for use
-# with examples from the CDK Developer's Guide, which are in the process of
-# being updated to use `cdk`.  You may delete this import if you don't need it.
 from aws_cdk import core
-
-from aws_cdk_ent_network.aws_cdk_ent_network_stack import AwsCdkEntNetworkStack
-
+from stacks.networks import Network
+from stacks.ec2 import Ec2
 
 app = core.App()
-AwsCdkEntNetworkStack(app, "AwsCdkEntNetworkStack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
 
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
-
-    #env=core.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
-
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
-
-    #env=core.Environment(account='123456789012', region='us-east-1'),
-
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
+network_stack_us_east_1 = Network(app, "network-stack-us-east-1",
+        cidr_range="172.16.0.0/24",
+        add_cidr_range="100.64.0.0/24",
+        az="us-east-1a",
+        tgw_asn=64512,
+        env={
+            'region': 'us-east-1',
+        }
     )
+
+network_stack_eu_west_1 = Network(app, "network-stack-eu-west-1",
+        cidr_range="172.16.1.0/24",
+        add_cidr_range="100.64.1.0/24",
+        az="eu-west-1a",
+        tgw_asn=64513,
+        env={
+            'region': 'eu-west-1',
+        }
+    )
+
+# ec2_stack_us_east_1 = Ec2(app, id="instance-stack-us-east-1",
+#         network_stack=network_stack_us_east_1, 
+#         env={
+#             'region': 'us-east-1',
+#         }
+#     )
+
+# ec2_stack_eu_west_1 = Ec2(app, id="instance-stack-eu-west-1",
+#         network_stack=network_stack_eu_west_1, 
+#         env={
+#             'region': 'eu-west-1',
+#         }
+#     )
+
+# ec2_stack_us_east_1.add_dependency(network_stack_us_east_1)
+# ec2_stack_eu_west_1.add_dependency(network_stack_eu_west_1)
 
 app.synth()
